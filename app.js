@@ -541,37 +541,58 @@ function handleDragEnd() {
     clearInterval(scrollInterval);
 }
 
-// Gestion de l'auto-scroll pendant le drag sur la grille centrale des foyers
+// Gestion de l'auto-scroll pendant le drag (grille interne sur PC et fenêtre globale sur mobile)
 function setupFoyersGridAutoScroll() {
-    foyersContainer.addEventListener('dragover', (e) => {
-        const rect = foyersContainer.getBoundingClientRect();
+    // Écouter sur document pour suivre le drag même si le curseur sort de la grille
+    document.addEventListener('dragover', (e) => {
+        if (!draggedElementId) return;
+
         const mouseY = e.clientY;
-        const threshold = 60; // 60px du bord haut ou bas
-        const topEdge = rect.top + threshold;
-        const bottomEdge = rect.bottom - threshold;
+        const viewportHeight = window.innerHeight;
+        const threshold = 80; // Zone de déclenchement (80px du bord de l'écran visible)
 
         clearInterval(scrollInterval);
 
-        if (mouseY < topEdge) {
-            // Curseur vers le haut : défiler vers le haut
-            const speed = Math.max(1, Math.min(15, (topEdge - mouseY) / 3));
+        // 1. Proximité avec les bords de l'écran global (Utile sur mobile et petits écrans)
+        if (mouseY < threshold) {
+            // Curseur vers le haut de l'écran -> Scroll de la page entière vers le haut
+            const speed = Math.max(2, (threshold - mouseY) / 2.5);
             scrollInterval = setInterval(() => {
-                foyersContainer.scrollTop -= speed;
+                window.scrollBy(0, -speed);
             }, 15);
-        } else if (mouseY > bottomEdge) {
-            // Curseur vers le bas : défiler vers le bas
-            const speed = Math.max(1, Math.min(15, (mouseY - bottomEdge) / 3));
+        } else if (mouseY > viewportHeight - threshold) {
+            // Curseur vers le bas de l'écran -> Scroll de la page entière vers le bas
+            const speed = Math.max(2, (mouseY - (viewportHeight - threshold)) / 2.5);
             scrollInterval = setInterval(() => {
-                foyersContainer.scrollTop += speed;
+                window.scrollBy(0, speed);
             }, 15);
+        } else {
+            // 2. Si on est au milieu, on gère le scroll interne de la grille des foyers (Utile sur PC)
+            const rect = foyersContainer.getBoundingClientRect();
+            if (mouseY >= rect.top && mouseY <= rect.bottom) {
+                const topEdge = rect.top + 60;
+                const bottomEdge = rect.bottom - 60;
+                
+                if (mouseY < topEdge) {
+                    const speed = Math.max(1, (topEdge - mouseY) / 3);
+                    scrollInterval = setInterval(() => {
+                        foyersContainer.scrollTop -= speed;
+                    }, 15);
+                } else if (mouseY > bottomEdge) {
+                    const speed = Math.max(1, (mouseY - bottomEdge) / 3);
+                    scrollInterval = setInterval(() => {
+                        foyersContainer.scrollTop += speed;
+                    }, 15);
+                }
+            }
         }
     });
 
-    foyersContainer.addEventListener('dragleave', () => {
+    document.addEventListener('dragleave', () => {
         clearInterval(scrollInterval);
     });
 
-    foyersContainer.addEventListener('drop', () => {
+    document.addEventListener('drop', () => {
         clearInterval(scrollInterval);
     });
 }
