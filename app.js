@@ -10,6 +10,7 @@ let draggedElementId = null;
 let scrollSpeedY = 0;
 let scrollTarget = null; // soit window, soit foyersContainer
 let scrollIntervalId = null;
+const isMobileDevice = window.matchMedia("(pointer: coarse)").matches;
 
 // ==============================================================================
 // ELEMENTS DU DOM
@@ -576,22 +577,39 @@ function stopAutoScrollLoop() {
 // Analyse la position du pointeur/doigt et définit la vitesse de défilement (Viewport et Grille interne)
 function handlePointerMove(clientY) {
     const viewportHeight = window.innerHeight;
-    const thresholdTop = 120; // Zone de déclenchement en haut (120px)
-    const thresholdBottom = 250; // Zone de déclenchement au quart inférieur (250px) pour anticiper très tôt la barre Android
+    
+    // Détermination dynamique des seuils selon l'appareil (Mobile tactile vs PC souris)
+    const thresholdTop = isMobileDevice ? 150 : 100;
+    const thresholdBottom = isMobileDevice ? (viewportHeight / 2) : 220;
 
     // 1. Détection de proximité avec les bords de l'écran global (Viewport)
     if (clientY < thresholdTop) {
         scrollTarget = window;
-        // Vitesse progressive vers le haut : de 15px/frame à 35px/frame max
-        const diff = thresholdTop - clientY;
-        const ratio = Math.min(1, diff / thresholdTop);
-        scrollSpeedY = -Math.round(15 + ratio * 20);
+        if (isMobileDevice) {
+            // Sur mobile : remontée progressive de 10 à 30px/frame
+            const diff = thresholdTop - clientY;
+            const ratio = Math.min(1, diff / thresholdTop);
+            scrollSpeedY = -Math.round(10 + ratio * 20);
+        } else {
+            // Sur PC : remontée progressive de 4 à 20px/frame
+            const diff = thresholdTop - clientY;
+            const ratio = Math.min(1, diff / thresholdTop);
+            scrollSpeedY = -Math.round(4 + ratio * 16);
+        }
     } else if (clientY > viewportHeight - thresholdBottom) {
         scrollTarget = window;
-        // Vitesse progressive vers le bas (quart inférieur) : de 18px/frame (démarrage ultra-rapide) à 45px/frame max pour un scroll immédiat
-        const diff = clientY - (viewportHeight - thresholdBottom);
-        const ratio = Math.min(1, diff / thresholdBottom);
-        scrollSpeedY = Math.round(18 + ratio * 27);
+        if (isMobileDevice) {
+            // Sur mobile (détection dès la moitié basse de l'écran) :
+            // Vitesse de départ douce (3px/frame) et accélération progressive jusqu'à 28px/frame
+            const diff = clientY - (viewportHeight - thresholdBottom);
+            const ratio = Math.min(1, diff / thresholdBottom);
+            scrollSpeedY = Math.round(3 + ratio * 25);
+        } else {
+            // Sur PC : vitesse progressive de 4 à 20px/frame
+            const diff = clientY - (viewportHeight - thresholdBottom);
+            const ratio = Math.min(1, diff / thresholdBottom);
+            scrollSpeedY = Math.round(4 + ratio * 16);
+        }
     } else {
         // 2. Si on est au milieu de l'écran, on gère le scroll interne de la grille centrale (PC uniquement)
         const rect = foyersContainer.getBoundingClientRect();
