@@ -577,21 +577,21 @@ function stopAutoScrollLoop() {
 function handlePointerMove(clientY) {
     const viewportHeight = window.innerHeight;
     const thresholdTop = 120; // Zone de déclenchement en haut (120px)
-    const thresholdBottom = 330; // Zone de déclenchement au tiers inférieur (330px) pour anticiper très tôt la barre Android
+    const thresholdBottom = 250; // Zone de déclenchement au quart inférieur (250px) pour anticiper très tôt la barre Android
 
     // 1. Détection de proximité avec les bords de l'écran global (Viewport)
     if (clientY < thresholdTop) {
         scrollTarget = window;
-        // Vitesse progressive vers le haut : de 4px/frame à 20px/frame max
+        // Vitesse progressive vers le haut : de 15px/frame à 35px/frame max
         const diff = thresholdTop - clientY;
         const ratio = Math.min(1, diff / thresholdTop);
-        scrollSpeedY = -Math.round(4 + ratio * 16);
+        scrollSpeedY = -Math.round(15 + ratio * 20);
     } else if (clientY > viewportHeight - thresholdBottom) {
         scrollTarget = window;
-        // Vitesse progressive vers le bas (tiers inférieur) : de 7px/frame (démarrage franc) à 28px/frame max
+        // Vitesse progressive vers le bas (quart inférieur) : de 18px/frame (démarrage ultra-rapide) à 45px/frame max pour un scroll immédiat
         const diff = clientY - (viewportHeight - thresholdBottom);
         const ratio = Math.min(1, diff / thresholdBottom);
-        scrollSpeedY = Math.round(7 + ratio * 21);
+        scrollSpeedY = Math.round(18 + ratio * 27);
     } else {
         // 2. Si on est au milieu de l'écran, on gère le scroll interne de la grille centrale (PC uniquement)
         const rect = foyersContainer.getBoundingClientRect();
@@ -889,10 +889,11 @@ function renderResults(assignments, attempts) {
 
     showStatus(`Tirage réussi en ${attempts} itération(s) ! Le résultat a été classé par ordre alphabétique.`, "success");
 
-    // Auto-scroll fluide vers la zone des résultats (très important sur mobile)
-    setTimeout(() => {
-        resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 80);
+    // Saut de page instantané et brutal tout en bas pour afficher directement le tirage (mobile/PC)
+    window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: 'auto'
+    });
 }
 
 function showStatus(message, type) {
