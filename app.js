@@ -100,6 +100,7 @@ function addParticipant(name, foyerIds = []) {
     participants.push(newParticipant);
     renderParticipant(newParticipant);
     updateParticipantCount();
+    updateResetButtonVisibility();
     return newParticipant;
 }
 
@@ -140,6 +141,7 @@ function removeParticipant(id) {
     
     updateParticipantCount();
     hideResults();
+    updateResetButtonVisibility();
 }
 
 // Dessine ou met à jour les badges d'un participant dans les foyers correspondants
@@ -286,6 +288,7 @@ function createFoyer() {
     foyers.push(newFoyer);
     renderFoyerCard(newFoyer);
     hideResults();
+    updateResetButtonVisibility();
 }
 
 function renderFoyerCard(foyer) {
@@ -480,6 +483,7 @@ function removeFoyer(foyerId) {
     if (cardEl) cardEl.remove();
     
     hideResults();
+    updateResetButtonVisibility();
 }
 
 // Affiche le sélecteur contextuel de foyer (popover de duplication)
@@ -961,9 +965,6 @@ function renderResults(assignments, attempts) {
 
     resultsTextDisplay.textContent = textResult;
     resultsContainer.classList.remove('hidden');
-    btnResetAll.classList.remove('hidden');
-
-    showStatus(`Tirage réussi en ${attempts} itération(s) ! Le résultat a été classé par ordre alphabétique.`, "success");
 
     // Saut de page instantané et brutal tout en bas pour afficher directement le tirage (mobile/PC)
     window.scrollTo({
@@ -1046,4 +1047,12 @@ function loadDemoData() {
             }
         }
     }, 100);
+}
+
+function updateResetButtonVisibility() {
+    if (participants.length > 0 || foyers.length > 0) {
+        btnResetAll.classList.remove('hidden');
+    } else {
+        btnResetAll.classList.add('hidden');
+    }
 }
