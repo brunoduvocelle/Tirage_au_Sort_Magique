@@ -173,7 +173,6 @@ function createTagElement(participant, foyerId) {
     tag.id = foyerId ? `${participant.id}___${foyerId}` : participant.id;
     tag.draggable = true;
     tag.textContent = participant.name;
-
     // Bouton d'action additionnel pour dupliquer/lier (uniquement si le participant est dans un foyer)
     if (foyerId) {
         const btnLink = document.createElement('button');
@@ -184,6 +183,16 @@ function createTagElement(participant, foyerId) {
             showFoyerSelector(e, participant, foyerId);
         });
         tag.appendChild(btnLink);
+    } else {
+        // Bouton d'affectation directe (uniquement si le participant n'est pas dans un foyer)
+        const btnAssign = document.createElement('button');
+        btnAssign.className = 'btn-duplicate';
+        btnAssign.innerHTML = '➕';
+        btnAssign.title = 'Affecter à un foyer d\'exclusion';
+        btnAssign.addEventListener('click', (e) => {
+            showFoyerAssigner(e, participant);
+        });
+        tag.appendChild(btnAssign);
     }
 
     // Bouton de suppression
@@ -510,6 +519,49 @@ function showFoyerSelector(e, participant, currentFoyerId) {
                 closeAllPopovers();
             });
         }
+        popover.appendChild(item);
+    });
+
+    document.body.appendChild(popover);
+
+    // Positionner le menu juste en dessous du bouton cliqué
+    const rect = e.target.getBoundingClientRect();
+    popover.style.left = (window.scrollX + rect.left) + 'px';
+    popover.style.top = (window.scrollY + rect.bottom + 5) + 'px';
+}
+
+// Affiche le sélecteur d'affectation directe de foyer (pour mobile / bouton ➕)
+function showFoyerAssigner(e, participant) {
+    e.stopPropagation();
+    closeAllPopovers();
+
+    if (foyers.length === 0) {
+        alert("Créez d'abord un foyer d'exclusion pour y ajouter ce participant !");
+        return;
+    }
+
+    const popover = document.createElement('div');
+    popover.className = 'foyer-selector-popover';
+
+    const title = document.createElement('div');
+    title.className = 'foyer-selector-title';
+    title.textContent = 'Ajouter au foyer :';
+    popover.appendChild(title);
+
+    foyers.forEach(foyer => {
+        const item = document.createElement('div');
+        item.className = 'foyer-selector-item';
+        item.textContent = foyer.name;
+
+        item.addEventListener('click', (event) => {
+            event.stopPropagation();
+            if (!participant.foyerIds.includes(foyer.id)) {
+                participant.foyerIds.push(foyer.id);
+            }
+            renderParticipant(participant);
+            hideResults();
+            closeAllPopovers();
+        });
         popover.appendChild(item);
     });
 
