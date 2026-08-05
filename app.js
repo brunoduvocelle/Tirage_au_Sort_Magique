@@ -224,6 +224,12 @@ function createTagElement(participant, foyerId) {
     tag.addEventListener('dragstart', handleDragStart);
     tag.addEventListener('dragend', handleDragEnd);
 
+    // Événement tactile mobile pour initialiser l'auto-scroll dès le toucher
+    tag.addEventListener('touchstart', () => {
+        draggedElementId = tag.id;
+        startAutoScrollLoop();
+    }, { passive: true });
+
     return tag;
 }
 
