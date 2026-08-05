@@ -5,7 +5,11 @@ let participants = [];
 let foyers = [];
 let foyerColorIndex = 1;
 let draggedElementId = null;
-let scrollInterval = null;
+
+// Variables pour la boucle d'auto-scroll 60 FPS
+let scrollSpeedY = 0;
+let scrollTarget = null; // soit window, soit foyersContainer
+let scrollIntervalId = null;
 
 // ==============================================================================
 // ELEMENTS DU DOM
@@ -526,6 +530,9 @@ function handleDragStart(e) {
     
     e.dataTransfer.setData('text/plain', this.id);
     e.dataTransfer.effectAllowed = 'move';
+
+    // Démarrer la boucle d'auto-scroll 60 FPS
+    startAutoScrollLoop();
 }
 
 function handleDragEnd() {
@@ -538,63 +545,113 @@ function handleDragEnd() {
         el.classList.remove('dragover');
     });
     
-    clearInterval(scrollInterval);
+    // Arrêter la boucle d'auto-scroll et réinitialiser
+    stopAutoScrollLoop();
+}
+
+// Démarre la boucle de défilement continu (60 FPS)
+function startAutoScrollLoop() {
+    if (scrollIntervalId) clearInterval(scrollIntervalId);
+    scrollIntervalId = setInterval(() => {
+        if (scrollSpeedY !== 0) {
+            if (scrollTarget === window) {
+                window.scrollBy(0, scrollSpeedY);
+            } else if (scrollTarget) {
+                scrollTarget.scrollTop += scrollSpeedY;
+            }
+        }
+    }, 16); // Environ 60 frames par seconde
+}
+
+// Arrête la boucle de défilement et réinitialise les vitesses
+function stopAutoScrollLoop() {
+    if (scrollIntervalId) {
+        clearInterval(scrollIntervalId);
+        scrollIntervalId = null;
+    }
+    scrollSpeedY = 0;
+    scrollTarget = null;
+}
+
+// Analyse la position du pointeur/doigt et définit la vitesse de défilement (Viewport et Grille interne)
+function handlePointerMove(clientY) {
+    const viewportHeight = window.innerHeight;
+    const thresholdTop = 120; // Zone de déclenchement en haut (120px)
+    const thresholdBottom = 330; // Zone de déclenchement au tiers inférieur (330px) pour anticiper très tôt la barre Android
+
+    // 1. Détection de proximité avec les bords de l'écran global (Viewport)
+    if (clientY < thresholdTop) {
+        scrollTarget = window;
+        // Vitesse progressive vers le haut : de 4px/frame à 20px/frame max
+        const diff = thresholdTop - clientY;
+        const ratio = Math.min(1, diff / thresholdTop);
+        scrollSpeedY = -Math.round(4 + ratio * 16);
+    } else if (clientY > viewportHeight - thresholdBottom) {
+        scrollTarget = window;
+        // Vitesse progressive vers le bas (tiers inférieur) : de 7px/frame (démarrage franc) à 28px/frame max
+        const diff = clientY - (viewportHeight - thresholdBottom);
+        const ratio = Math.min(1, diff / thresholdBottom);
+        scrollSpeedY = Math.round(7 + ratio * 21);
+    } else {
+        // 2. Si on est au milieu de l'écran, on gère le scroll interne de la grille centrale (PC uniquement)
+        const rect = foyersContainer.getBoundingClientRect();
+        if (clientY >= rect.top && clientY <= rect.bottom) {
+            const topEdge = rect.top + 60;
+            const bottomEdge = rect.bottom - 60;
+            
+            if (clientY < topEdge) {
+                scrollTarget = foyersContainer;
+                scrollSpeedY = -Math.max(3, (topEdge - clientY) / 2.5);
+            } else if (clientY > bottomEdge) {
+                scrollTarget = foyersContainer;
+                scrollSpeedY = Math.max(3, (clientY - bottomEdge) / 2.5);
+            } else {
+                scrollSpeedY = 0;
+                scrollTarget = null;
+            }
+        } else {
+            scrollSpeedY = 0;
+            scrollTarget = null;
+        }
+    }
 }
 
 // Gestion de l'auto-scroll pendant le drag (grille interne sur PC et fenêtre globale sur mobile)
 function setupFoyersGridAutoScroll() {
-    // Écouter sur document pour suivre le drag même si le curseur sort de la grille
+    // Écouteur pour la souris (PC)
     document.addEventListener('dragover', (e) => {
         if (!draggedElementId) return;
-
-        const mouseY = e.clientY;
-        const viewportHeight = window.innerHeight;
-        const thresholdTop = 100; // Zone de déclenchement en haut (100px)
-        const thresholdBottom = 140; // Zone de déclenchement élargie en bas (140px) pour éviter les boutons système d'Android
-
-        clearInterval(scrollInterval);
-
-        // 1. Proximité avec les bords de l'écran global (Utile sur mobile et petits écrans)
-        if (mouseY < thresholdTop) {
-            // Curseur vers le haut de l'écran -> Scroll de la page entière vers le haut
-            const speed = Math.max(2, (thresholdTop - mouseY) / 2.5);
-            scrollInterval = setInterval(() => {
-                window.scrollBy(0, -speed);
-            }, 15);
-        } else if (mouseY > viewportHeight - thresholdBottom) {
-            // Curseur vers le bas de l'écran -> Scroll de la page entière vers le bas (déclenché plus haut pour éviter les boutons Android)
-            const speed = Math.max(2, (mouseY - (viewportHeight - thresholdBottom)) / 2.5);
-            scrollInterval = setInterval(() => {
-                window.scrollBy(0, speed);
-            }, 15);
-        } else {
-            // 2. Si on est au milieu, on gère le scroll interne de la grille des foyers (Utile sur PC)
-            const rect = foyersContainer.getBoundingClientRect();
-            if (mouseY >= rect.top && mouseY <= rect.bottom) {
-                const topEdge = rect.top + 60;
-                const bottomEdge = rect.bottom - 60;
-                
-                if (mouseY < topEdge) {
-                    const speed = Math.max(1, (topEdge - mouseY) / 3);
-                    scrollInterval = setInterval(() => {
-                        foyersContainer.scrollTop -= speed;
-                    }, 15);
-                } else if (mouseY > bottomEdge) {
-                    const speed = Math.max(1, (mouseY - bottomEdge) / 3);
-                    scrollInterval = setInterval(() => {
-                        foyersContainer.scrollTop += speed;
-                    }, 15);
-                }
-            }
-        }
+        handlePointerMove(e.clientY);
     });
 
+    // Écouteur pour le tactile (Smartphones Android & iOS)
+    document.addEventListener('touchmove', (e) => {
+        if (!draggedElementId) return;
+        if (e.touches && e.touches.length > 0) {
+            handlePointerMove(e.touches[0].clientY);
+        }
+    }, { passive: true });
+
+    // En cas de sortie d'élément ou de dépôt, on réinitialise les vitesses
     document.addEventListener('dragleave', () => {
-        clearInterval(scrollInterval);
+        scrollSpeedY = 0;
+        scrollTarget = null;
     });
 
     document.addEventListener('drop', () => {
-        clearInterval(scrollInterval);
+        stopAutoScrollLoop();
+        draggedElementId = null;
+    });
+
+    // Événements tactiles de fin de drag pour mobile (arrêt immédiat dès qu'on lève le doigt)
+    document.addEventListener('touchend', () => {
+        stopAutoScrollLoop();
+        draggedElementId = null;
+    });
+
+    document.addEventListener('touchcancel', () => {
+        stopAutoScrollLoop();
+        draggedElementId = null;
     });
 }
 
@@ -613,7 +670,7 @@ function initDragAndDropContainer(container) {
 
     container.addEventListener('drop', (e) => {
         e.preventDefault();
-        clearInterval(scrollInterval);
+        stopAutoScrollLoop();
         
         const fullId = e.dataTransfer.getData('text/plain') || draggedElementId;
         if (!fullId) return;
@@ -831,6 +888,11 @@ function renderResults(assignments, attempts) {
     btnResetAll.classList.remove('hidden');
 
     showStatus(`Tirage réussi en ${attempts} itération(s) ! Le résultat a été classé par ordre alphabétique.`, "success");
+
+    // Auto-scroll fluide vers la zone des résultats (très important sur mobile)
+    setTimeout(() => {
+        resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 80);
 }
 
 function showStatus(message, type) {
