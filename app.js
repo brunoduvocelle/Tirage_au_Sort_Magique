@@ -549,20 +549,21 @@ function setupFoyersGridAutoScroll() {
 
         const mouseY = e.clientY;
         const viewportHeight = window.innerHeight;
-        const threshold = 80; // Zone de déclenchement (80px du bord de l'écran visible)
+        const thresholdTop = 100; // Zone de déclenchement en haut (100px)
+        const thresholdBottom = 140; // Zone de déclenchement élargie en bas (140px) pour éviter les boutons système d'Android
 
         clearInterval(scrollInterval);
 
         // 1. Proximité avec les bords de l'écran global (Utile sur mobile et petits écrans)
-        if (mouseY < threshold) {
+        if (mouseY < thresholdTop) {
             // Curseur vers le haut de l'écran -> Scroll de la page entière vers le haut
-            const speed = Math.max(2, (threshold - mouseY) / 2.5);
+            const speed = Math.max(2, (thresholdTop - mouseY) / 2.5);
             scrollInterval = setInterval(() => {
                 window.scrollBy(0, -speed);
             }, 15);
-        } else if (mouseY > viewportHeight - threshold) {
-            // Curseur vers le bas de l'écran -> Scroll de la page entière vers le bas
-            const speed = Math.max(2, (mouseY - (viewportHeight - threshold)) / 2.5);
+        } else if (mouseY > viewportHeight - thresholdBottom) {
+            // Curseur vers le bas de l'écran -> Scroll de la page entière vers le bas (déclenché plus haut pour éviter les boutons Android)
+            const speed = Math.max(2, (mouseY - (viewportHeight - thresholdBottom)) / 2.5);
             scrollInterval = setInterval(() => {
                 window.scrollBy(0, speed);
             }, 15);
