@@ -2,104 +2,209 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadeaux-Tirage-au-sortffff</title>
-    <!-- Intégration d'une police moderne depuis Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=8.0">
+    <title>Formulaire2 : Recherche personnalisée - Grille de Résultats</title>
+    <style>
+        /* --- Styles Généraux et Conteneur --- */
+        body {
+            font-family: Tahoma, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0; 
+        }
+        
+        /* Conteneur Principal (Fond bleu foncé) */
+        .container {
+            width: 90%;
+            max-width: 1200px; /* Plus large pour la grille de résultats */
+            margin: 20px auto;
+            background-color: #314D80; /* Bleu foncé principal */
+            padding-bottom: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* --- En-tête (Titre) --- */
+        .header {
+            padding: 15px 20px 10px 20px;
+            background-color: #4C97BC; /* Couleur de la barre de titre dans l'image */
+            color: white;
+            font-size: 1.8em;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        /* --- Zone de Recherche et Bouton --- */
+        .search-area {
+            padding: 15px 20px;
+            background-color: #314D80; /* Bleu foncé */
+            display: flex;
+            flex-direction: column; /* Organise le contenu verticalement */
+            align-items: flex-start; /* Alignement à gauche */
+            gap: 10px;
+        }
+        
+        /* Style du champ de recherche */
+        .search-input-container {
+            width: 50%; /* Largeur définie pour l'élément bleu clair */
+            background-color: #4C97BC; /* Couleur de la bande du champ de saisie */
+            padding: 5px;
+            border-radius: 3px 3px 0 0;
+        }
+
+        /* Champ de texte (text à chercher) */
+        .search-input-container input[type="text"] {
+            width: 100%; 
+            padding: 5px; 
+            border: none; 
+            box-sizing: border-box; 
+            font-size: 1em;
+            background-color: transparent;
+            color: white;
+        }
+
+        /* Style du bouton "Lancer la recherche" */
+        .btn-search { 
+            padding: 10px 15px;
+            font-weight: bold;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            color: black; 
+            background-color: #c0c0c0; /* Gris clair de l'image */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            margin-right: 15px;
+        }
+
+        /* La barre bleue au-dessus du tableau */
+        .top-bar {
+            height: 30px;
+            background-color: #4C97BC; /* Bande bleue claire */
+            margin: 0 0 10px 0;
+        }
+
+        /* --- Tableau de Résultats (Grille) --- */
+        .data-grid {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white; 
+        }
+
+        /* En-têtes du tableau */
+        .data-grid th {
+            padding: 8px 5px;
+            background-color: #f0f0f0; 
+            color: black;
+            font-size: 0.9em;
+            font-weight: normal;
+            border: 1px solid #ccc;
+            text-align: left;
+            position: relative;
+        }
+        
+        /* Flèches de tri (simulées) */
+        .data-grid th::after {
+            content: ' ▼'; 
+            font-size: 0.7em;
+            color: #888;
+            margin-left: 5px;
+            position: absolute;
+            right: 5px;
+        }
+        
+        /* Colonne de sélection à gauche */
+        .data-grid .selector-col {
+            width: 20px;
+            background-color: #f0f0f0; 
+            text-align: center;
+        }
+        
+        /* Cellules de données */
+        .data-grid td {
+            padding: 5px;
+            border: 1px solid #ddd;
+            font-size: 0.9em;
+            height: 20px; 
+        }
+
+        /* Lignes d'état/pagination en bas */
+        .footer-bar {
+            background-color: black;
+            color: white;
+            padding: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8em;
+        }
+        .footer-bar span, .footer-bar button {
+            color: white;
+            background: none;
+            border: 1px solid white;
+            padding: 2px 5px;
+            margin: 0 2px;
+            cursor: pointer;
+        }
+        .footer-bar span { border: none; }
+        
+    </style>
 </head>
 <body>
-    <div class="christmas-background"></div>
-    
-    <main class="app-container">
-        <!-- En-tête festif -->
-        <header class="app-header">
-            <h1>🎄 Cadeaux-Tirage-au-sort <span id="app-year">Noël 2026</span></h1>
-            <p class="subtitle">Organisez votre tirage au sort facilement en regroupant les couples ou familles par foyer pour éviter qu'ils ne s'offrent de cadeaux.</p>
-        </header>
 
-        <div class="workspace-grid">
-            <!-- Panneau de gauche : Gestion des participants -->
-            <section class="panel panel-participants">
-                <div class="panel-header">
-                    <h2>1. Participants</h2>
-                    <span class="badge-count" id="total-count">0</span>
-                </div>
-                
-                <!-- Zone de saisie manuelle -->
-                <div class="input-group">
-                    <input type="text" id="input-name" placeholder="Ajouter un prénom..." autocomplete="off">
-                    <button id="btn-add-name" title="Ajouter">+</button>
-                </div>
-                
-                <!-- Lien de bascule pour l'ajout en masse -->
-                <button class="text-link" id="toggle-bulk-input">Ajouter plusieurs noms à la fois</button>
-                
-                <!-- Zone de saisie en masse (masquée par défaut) -->
-                <div class="bulk-input-container hidden" id="bulk-input-container">
-                    <textarea id="bulk-names" placeholder="Collez votre liste de prénoms ici&#10;(un nom par ligne)..."></textarea>
-                    <button class="btn btn-secondary btn-small" id="btn-import-bulk">Importer la liste</button>
-                </div>
-
-                <!-- Liste des participants disponibles (non affectés à un foyer) -->
-                <div class="participants-list" id="unassigned-participants" data-foyer-id="null">
-                    <!-- Les jetons de participants seront injectés ici en JS -->
-                </div>
-            </section>
-
-            <!-- Zone centrale : Foyers / Clans d'exclusion -->
-            <section class="panel panel-foyers">
-                <div class="panel-header">
-                    <h2>2. Exclusions (Foyers)</h2>
-                    <button class="btn btn-primary btn-small" id="btn-create-foyer">+ Créer un Foyer</button>
-                </div>
-                
-                <p class="panel-instruction">Glissez et déposez les participants dans un même Foyer (conjoints, familles, colocs) pour leur interdire de s'offrir des cadeaux entre eux.</p>
-                
-                <!-- Liste des foyers -->
-                <div class="foyers-grid" id="foyers-container">
-                    <!-- Les boîtes de foyers seront injectées ici en JS -->
-                </div>
-            </section>
-
-            <!-- Panneau de droite : Action & Résultats -->
-            <section class="panel panel-results">
-                <div class="panel-header">
-                    <h2>3. Tirage au Sort</h2>
-                </div>
-
-                <div class="action-zone">
-                    <button class="btn btn-success btn-large pulse" id="btn-launch-draw">
-                        <span>Lancer le tirage 🎁</span>
-                    </button>
-                    <button class="btn btn-danger btn-small hidden" id="btn-reset-all">Réinitialiser tout</button>
-                </div>
-
-                <!-- Section de notification d'échec ou d'itérations -->
-                <div class="status-box hidden" id="status-box"></div>
-
-                <!-- Zone d'affichage des résultats -->
-                <div class="results-container hidden" id="results-container">
-                    <div class="results-header">
-                        <h3>📋 Résultat du Tirage (Trié A-Z)</h3>
-                        <button class="btn btn-copy" id="btn-copy-clipboard" title="Copier la liste pour WhatsApp ou Mail">
-                            <span class="copy-icon">📋</span> Copier la liste
-                        </button>
-                    </div>
-                    
-                    <div class="results-text-wrapper">
-                        <pre class="results-text" id="results-text-display"></pre>
-                    </div>
-                </div>
-            </section>
+    <div class="container">
+        
+        <div class="header">
+            Outil de recherche parking OGS
         </div>
-    </main>
+        
+        <div class="search-area">
+            <div class="search-input-container">
+                <input type="text" name="txtRecherche" placeholder="text à chercher" title="Champ de recherche personnalisée">
+            </div>
+            
+            <button class="btn-search" name="btnRecherche">Lancer la recherche</button>
+        </div>
+        
+        <table class="data-grid">
+            <thead>
+                <tr>
+                    <th class="selector-col"></th> <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>Cuid</th>
+                    <th>Parking</th>
+                    <th>Badge Orange</th>
+                    <th>Plaque1</th>
+                    <th>Plaque2</th>
+                    <th>Plaque3</th>
+                    <th>Typologie</th>
+                    <th>Mutlipark</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="selector-col" style="background-color: #E2A677;">▶</td>
+                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr><td class="selector-col"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="selector-col"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="selector-col"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="selector-col"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="selector-col"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="selector-col"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="selector-col"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            </tbody>
+        </table>
+        
+        <div class="footer-bar">
+            <div>
+                <span>Enr : <</span>
+                <button>&lt;</button>
+                <button>&gt;</button>
+                <span>par 1</span>
+                <span>Filtrer</span>
+                <button>Rechercher</button>
+            </div>
+        </div>
 
-    <!-- Notification Toast de copie réussie -->
-    <div class="toast" id="copy-toast">Copié dans le presse-papiers ! 🎄</div>
+    </div>
 
-    <script src="app.js?v=8.0"></script>
 </body>
 </html>
