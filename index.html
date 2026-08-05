@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadeaux-Tirage-au-sort</title>
+    <!-- Intégration d'une police moderne depuis Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="christmas-background"></div>
+    
+    <main class="app-container">
+        <!-- En-tête festif -->
+        <header class="app-header">
+            <h1>🎄 Cadeaux-Tirage-au-sort <span id="app-year">Noël 2026</span></h1>
+            <p class="subtitle">Organisez votre tirage au sort facilement en regroupant les couples ou familles par foyer pour éviter qu'ils ne s'offrent de cadeaux.</p>
+        </header>
+
+        <div class="workspace-grid">
+            <!-- Panneau de gauche : Gestion des participants -->
+            <section class="panel panel-participants">
+                <div class="panel-header">
+                    <h2>1. Participants</h2>
+                    <span class="badge-count" id="total-count">0</span>
+                </div>
+                
+                <!-- Zone de saisie manuelle -->
+                <div class="input-group">
+                    <input type="text" id="input-name" placeholder="Ajouter un prénom..." autocomplete="off">
+                    <button id="btn-add-name" title="Ajouter">+</button>
+                </div>
+                
+                <!-- Lien de bascule pour l'ajout en masse -->
+                <button class="text-link" id="toggle-bulk-input">Ajouter plusieurs noms à la fois</button>
+                
+                <!-- Zone de saisie en masse (masquée par défaut) -->
+                <div class="bulk-input-container hidden" id="bulk-input-container">
+                    <textarea id="bulk-names" placeholder="Collez votre liste de prénoms ici&#10;(un nom par ligne)..."></textarea>
+                    <button class="btn btn-secondary btn-small" id="btn-import-bulk">Importer la liste</button>
+                </div>
+
+                <!-- Liste des participants disponibles (non affectés à un foyer) -->
+                <div class="participants-list" id="unassigned-participants" data-foyer-id="null">
+                    <!-- Les jetons de participants seront injectés ici en JS -->
+                </div>
+            </section>
+
+            <!-- Zone centrale : Foyers / Clans d'exclusion -->
+            <section class="panel panel-foyers">
+                <div class="panel-header">
+                    <h2>2. Exclusions (Foyers)</h2>
+                    <button class="btn btn-primary btn-small" id="btn-create-foyer">+ Créer un Foyer</button>
+                </div>
+                
+                <p class="panel-instruction">Glissez et déposez les participants dans un même Foyer (conjoints, familles, colocs) pour leur interdire de s'offrir des cadeaux entre eux.</p>
+                
+                <!-- Liste des foyers -->
+                <div class="foyers-grid" id="foyers-container">
+                    <!-- Les boîtes de foyers seront injectées ici en JS -->
+                </div>
+            </section>
+
+            <!-- Panneau de droite : Action & Résultats -->
+            <section class="panel panel-results">
+                <div class="panel-header">
+                    <h2>3. Tirage au Sort</h2>
+                </div>
+
+                <div class="action-zone">
+                    <button class="btn btn-success btn-large pulse" id="btn-launch-draw">
+                        <span>Lancer le tirage 🎁</span>
+                    </button>
+                    <button class="btn btn-danger btn-small hidden" id="btn-reset-all">Réinitialiser tout</button>
+                </div>
+
+                <!-- Section de notification d'échec ou d'itérations -->
+                <div class="status-box hidden" id="status-box"></div>
+
+                <!-- Zone d'affichage des résultats -->
+                <div class="results-container hidden" id="results-container">
+                    <div class="results-header">
+                        <h3>📋 Résultat du Tirage (Trié A-Z)</h3>
+                        <button class="btn btn-copy" id="btn-copy-clipboard" title="Copier la liste pour WhatsApp ou Mail">
+                            <span class="copy-icon">📋</span> Copier la liste
+                        </button>
+                    </div>
+                    
+                    <div class="results-text-wrapper">
+                        <pre class="results-text" id="results-text-display"></pre>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Notification Toast de copie réussie -->
+    <div class="toast" id="copy-toast">Copié dans le presse-papiers ! 🎄</div>
+
+    <script src="app.js"></script>
+</body>
+</html>
